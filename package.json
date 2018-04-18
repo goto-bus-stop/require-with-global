@@ -1,7 +1,7 @@
 {
   "name": "require-with-global",
   "description": "inject a global variable into a module require() tree",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author": "Renée Kooi <renee@kooi.me>",
   "bugs": {
     "url": "https://github.com/goto-bus-stop/require-with-global/issues"
