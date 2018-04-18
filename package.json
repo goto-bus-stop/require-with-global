@@ -1,0 +1,41 @@
+{
+  "name": "require-with-global",
+  "description": "inject a global variable into a module require() tree",
+  "version": "0.0.0",
+  "author": "Renée Kooi <renee@kooi.me>",
+  "bugs": {
+    "url": "https://github.com/goto-bus-stop/require-with-global/issues"
+  },
+  "dependencies": {
+    "debug": "^3.1.0",
+    "pirates": "^3.0.2"
+  },
+  "devDependencies": {
+    "standard": "^11.0.1",
+    "tap-spec": "^4.0.2",
+    "tape": "^4.0.0"
+  },
+  "homepage": "https://github.com/goto-bus-stop/require-with-global",
+  "keywords": [
+    "global",
+    "inject",
+    "insert",
+    "mock",
+    "require",
+    "variable"
+  ],
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goto-bus-stop/require-with-global.git"
+  },
+  "scripts": {
+    "test": "standard && tape test/*.js | tap-spec"
+  },
+  "standard": {
+    "ignore": [
+      "test/files/*.js"
+    ]
+  }
+}
