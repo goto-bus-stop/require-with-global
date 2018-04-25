@@ -27,22 +27,28 @@ var uppercaseStream = require('through2')(function (chunk, enc, next) {
   next(null, chunk.toUpperCase())
 })
 var virtualConsole = require('console').Console(uppercaseStream)
-var captureConsole = withGlobal(require, {
+var r = withGlobal()
+// `console` in ./app.js and all child modules will be `virtualConsole`.
+var app = r('./app', {
   console: virtualConsole
 })
 
-// `console` in ./app.js and all child modules will be `virtualConsole`.
-var app = captureConsole('./app')
 app.run()
 
 uppercaseStream.pipe(process.stdout)
+
+r.remove() // Remove the require hook
 ```
 
 ## API
 
-### `req = withGlobal(require, vars)`
+### `req = withGlobal()`
 
-Create a `require` function that injects `vars` into all its deeply required
+Create a `require` function that can be used to inject module-global variables.
+
+### `req(specifier, vars)`
+
+Require the module at `specifier`, injecting `vars` into all its deeply required
 modules. All the variables specified in the `vars` object will be available in
 modules required using the `req` function. Calls to `require()` inside the
 module will be wrapped so that `vars` are also recursively injected in
