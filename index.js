@@ -14,10 +14,12 @@ module.exports = function create () {
     assert(state, 'require-with-global: could not find state object when requiring \'' + filename + '\'. ' +
                   'This is most likely a bug, please report at https://github.com/goto-bus-stop/require-with-global/issues.')
 
+    var varname = 'global[' + JSON.stringify(stateName) + ']'
+
     debug('adding globals to', filename)
     // The wrapper that injects globals.
-    var pre = '(function(' + state.keys.join(',') + '){'
-    var post = '\n}).apply(this,global[' + JSON.stringify(stateName) + '].values);'
+    var pre = '(function(require,' + state.keys.join(',') + '){'
+    var post = '\n}).apply(this,[' + varname + '.wrap(module.filename,require)].concat(' + varname + '.values));'
 
     return pre + code + post
   }, { exts: ['.js'], matcher: shouldInject, ignoreNodeModules: false })
@@ -34,18 +36,12 @@ module.exports = function create () {
     var basedir = path.dirname(caller)
     var fullpath = resolve.sync(filename, {
       basedir: basedir,
-      extensions: Object.keys(require.extensions)
+      extensions: Object.keys(require.extensions) // eslint-disable-line node/no-deprecated-api
     })
 
-    var injectVariables = Object.assign({}, globals, {
-      // Wrap require to inject in child modules too.
-      require: function (filename) {
-        return requireWithGlobal(filename, globals, fullpath)
-      }
-    })
     var globalStateName = '__requireWithGlobalData' + id++
-    var keys = Object.keys(injectVariables)
-    var values = keys.map(function (k) { return injectVariables[k] })
+    var keys = Object.keys(globals)
+    var values = keys.map(function (k) { return globals[k] })
 
     keys.forEach(function (key) {
       assert(isVarName(key), 'require-with-global: got invalid variable name: \'' + key + '\'')
@@ -57,7 +53,16 @@ module.exports = function create () {
       enumerable: false,
       writable: false,
       configurable: true, // should be deletable
-      value: { keys: keys, values: values }
+      value: {
+        // Wrap require to inject in child modules too.
+        wrap: function (caller, require) {
+          return Object.assign(function subrequire (filename) {
+            return requireWithGlobal(filename, globals, caller)
+          }, require)
+        },
+        keys: keys,
+        values: values
+      }
     })
 
     var result = require(fullpath)
