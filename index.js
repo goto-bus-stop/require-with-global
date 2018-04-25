@@ -32,6 +32,9 @@ module.exports = function create () {
 
   function requireWithGlobal (filename, globals, caller) {
     if (!caller) caller = callsites()[1].getFileName()
+    if (!globals) globals = {}
+    // Don't hook builtin modules.
+    if (resolve.isCore(filename)) return require(filename)
 
     var basedir = path.dirname(caller)
     var fullpath = resolve.sync(filename, {

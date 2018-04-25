@@ -25,3 +25,13 @@ test('does not inject global variable into other requires()', function (t) {
   t.equal(r('./files/with-hello', { hello: 'beepboop' }), 'beepboop string')
   t.equal(require('./files/without-hello'), null)
 })
+
+test('prefers builtin modules over local deps', function (t) {
+  t.plan(2)
+  var r = makeRequire()
+  t.on('end', r.remove)
+  require('assert/').isCore = false
+
+  t.equal(r('assert/').isCore, false)
+  t.notEqual(r('assert').isCore, false)
+})
