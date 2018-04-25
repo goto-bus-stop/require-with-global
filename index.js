@@ -3,14 +3,14 @@ var debug = require('debug')('require-with-global')
 
 var id = 0
 module.exports = function withGlobal (require, globals) {
-  var name = '__requireWithGlobalData' + id++
+  var globalStateName = '__requireWithGlobalData' + id++
   var data = {
     makeRequire: makeRequire,
     values: Object.keys(globals).map(function (n) { return globals[n] })
   }
   var filenames = new Set()
 
-  Object.defineProperty(global, name, {
+  Object.defineProperty(global, globalStateName, {
     configurable: true, // should be deletable
     value: data
   })
@@ -19,12 +19,12 @@ module.exports = function withGlobal (require, globals) {
     return filenames.has(filename)
   }
 
-  function makeRequire (pfilename, require) {
+  function makeRequire (parentName, require) {
     return Object.assign(function subrequire (id) {
-      if (!global[name]) {
+      if (!global[globalStateName]) {
         throw new Error(
           'require-with-global\'s hooks were removed, but tried to require(' + JSON.stringify(id) + ')' +
-          (pfilename ? ' from ' + pfilename : ''))
+          (parentName ? ' from ' + parentName : ''))
       }
       debug('requiring with global', id)
       var filename = require.resolve(id)
@@ -34,9 +34,9 @@ module.exports = function withGlobal (require, globals) {
     }, require)
   }
 
-  // The wrapper that injects
+  // The wrapper that injects globals
   var pre = '(function(require,' + Object.keys(globals).join(',') + '){'
-  var post = '\n}).apply(this,[' + name + '.makeRequire(module.filename,require)].concat(' + name + '.values));'
+  var post = '\n}).apply(this,[' + globalStateName + '.makeRequire(module.filename,require)].concat(' + globalStateName + '.values));'
 
   var revert = pirates.addHook(function (code, filename) {
     debug('adding globals to', filename)
@@ -46,7 +46,7 @@ module.exports = function withGlobal (require, globals) {
   var api = makeRequire(null, require)
   api.remove = function () {
     revert()
-    delete global[name]
+    delete global[globalStateName]
   }
   return api
 }
