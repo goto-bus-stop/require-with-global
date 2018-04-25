@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## unreleased
+## 2.0.1
 * Don't hook builtin modules, fixes a problem where require-with-global would prefer modules installed in node_modules over builtins.
 
 ## 2.0.0
